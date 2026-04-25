@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Скам GPT</title>
+<link rel="manifest" href="manifest.json">
+
+<style>
+
+body {
+  font-family: Arial, sans-serif;
+  background: #e5ddd5;
+  padding: 10px;
+}
+  
+  body {
+  transition: background 0.5s ease, color 0.5s ease;
+}
+
+body.dark {
+  background: #121212;
+  color: #e0e0e0;
+}
+  
+.screen {
+  display: none;
+  opacity: 0;
+  transform: translateX(20px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.screen.active {
+  display: block;
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.bot {
+  display: flex;
+  gap: 6px;
+}
+
+.bot::before {
+  content: "🕳️";
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  background: #ddd;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+body.dark .bot::before {
+  background: #333;
+}
+
+#chat {
+  background: #f0f0f0;
+  height: 280px;
+  overflow-y: auto;
+  padding: 10px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+body.dark #chat {
+  background: #1e1e1e;
+}
+
+.bubble {
+  max-width: 75%;
+  padding: 8px 12px;
+  margin: 6px 0;
+  border-radius: 12px;
+  animation: appear 0.25s ease-out;
+  font-size: 14px;
+  position: relative;
+}
+
+.me {
+  background: #dcf8c6;
+  align-self: flex-end;
+}
+
+body.dark .me {
+  background: #056162;
+  color: white;
+}
+
+.bot {
+  background: white;
+  align-self: flex-start;
+}
+
+body.dark .bot {
+  background: #2a2a2a;
+  color: white;
+}
+
+.sender {
+  font-size: 11px;
+  opacity: 0.6;
+  margin-bottom: 2px;
+}
+
+.time {
+  display: block;
+  font-size: 10px;
+  color: #666;
+  text-align: right;
+  margin-top: 4px;
+}
+
+body.dark .time {
+  color: #aaa;
+}
+
+@keyframes appear {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+button {
+  margin: 5px 0;
+  padding: 8px;
+}
+
+.link {
+  color: black;
+  cursor: pointer;
+  margin: 6px 0;
+}
+
+body.dark .link {
+  color: #e0e0e0;
+}
+  
+  .settings-block {
+  margin-top: 15px;
+}
+
+.btn-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.btn-row button {
+  padding: 6px 10px;
+}
+
+.label {
+  margin-bottom: 6px;
+  opacity: 0.8;
+}
+  
+  /* --- UPSIDE DOWN --- */
+body.upside {
+  background: #050505;
+  color: #ff4d4d;
+}
+
+body.upside #chat {
+  background: #0a0a0a;
+}
+
+body.upside .bot {
+  background: #1a0000;
+  color: #ff4d4d;
+}
+
+body.upside .me {
+  background: #330000;
+  color: #ff8080;
+}
+  
+  #particles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+
+  width: 8px;
+  height: 10px;
+
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 2px;
+
+  animation: floatFall linear forwards;
+
+  will-change: transform, opacity, filter;
+}
+
+@keyframes floatFall {
+  0% {
+    transform: translateY(-20px) translateX(0) scale(0.6) rotate(0deg);
+    opacity: 0;
+    filter: blur(2px);
+  }
+
+  10% {
+    opacity: 0.5;
+  }
+
+  40% {
+    transform: translateY(30vh) translateX(25px) scale(1) rotate(90deg);
+    filter: blur(0px);
+  }
+
+  70% {
+    transform: translateY(70vh) translateX(-25px) scale(0.8) rotate(180deg);
+    filter: blur(1px);
+  }
+
+  100% {
+    transform: translateY(110vh) translateX(15px) scale(0.5) rotate(260deg);
+    opacity: 0;
+    filter: blur(3px);
+  }
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
+  
+</style>
+</head>
+
+<body>
+
+<div id="screen1" class="screen active">
+  <h2>Скам GPT</h2>
+  <div id="chat"></div>
+
+  <input id="text" placeholder="Напиши сообщение">
+  <button onclick="send()">Отправить</button>
+  <br>
+  <button onclick="goTo(2)">Настройки</button>
+</div>
+
+<div id="screen2" class="screen">
+  <h2>Настройки</h2>
+
+  <ul>
+    <li class="link" onclick="goTo(3)">Информация</li>
+    <li class="link" onclick="goTo(4)">Правила</li>
+    <li class="link" onclick="goTo(5)">Политика конфиденциальности</li>
+  </ul>
+
+  <div class="settings-block">
+    <button onclick="toggleTheme()">Сменить тему</button>
+    <button onclick="confirmClearChat()">Удалить чат</button>
+    </div>
+
+  <div class="settings-block">
+    <div class="label">Выбор языка</div>
+    <div class="btn-row">
+      <button onclick="setLanguage('ru')">Русский</button>
+      <button onclick="setLanguage('lv')">Latviešu</button>
+      <button onclick="setLanguage('en')">English</button>
+    </div>
+    <div id="languageLabel">Выбор языка</div>
+  </div>
+
+  <button onclick="goTo(1)">Назад</button>
+</div>
+
+<div id="screen3" class="screen">
+  <h2>Информация</h2>
+  <p>Скам GPT — школьный проект.</p>
+  <p>Сделан ради прикола и обучения.</p>
+  <p class="link" onclick="goTo(2)">Назад</p>
+</div>
+
+<div id="screen4" class="screen">
+  <h2>Правила</h2>
+  <p>1. Не воспринимать ответы всерьёз.</p>
+  <p>2. Это не настоящий ИИ.</p>
+  <p>3. Всё сделано ради шутки.</p>
+  <p class="link" onclick="goTo(2)">Назад</p>
+</div>
+
+<div id="screen5" class="screen">
+  <h2>Политика конфиденциальности</h2>
+  <p>Приложение не собирает данные.</p>
+  <p>Ничего не отправляется в интернет.</p>
+  <p class="link" onclick="goTo(2)">Назад</p>
+</div>
+
+<script>
+  
+  function startParticles() {
+  const container = document.createElement("div");
+  container.id = "particles";
+  document.body.appendChild(container);
+    
+    const depth = Math.random();
+
+// ближние
+if (depth > 0.7) {
+  p.style.transform = "scale(1.2)";
+  p.style.opacity = "0.8";
+}
+
+// средние
+else if (depth > 0.3) {
+  p.style.transform = "scale(1)";
+  p.style.opacity = "0.5";
+}
+
+// дальние
+else {
+  p.style.transform = "scale(0.6)";
+  p.style.opacity = "0.3";
+}
+
+  setInterval(() => {
+    if (Math.random() < 0.5) {
+
+      const count = Math.floor(Math.random() * 6) + 3;
+
+      for (let i = 0; i < count; i++) {
+        const p = document.createElement("div");
+        p.className = "particle";
+
+        // старт в случайной точке по ширине
+        p.style.left = Math.random() * window.innerWidth + "px";
+
+        // случайная длительность (чтобы не одинаково падали)
+        const duration = Math.random() * 4 + 4;
+        p.style.animationDuration = duration + "s";
+
+        container.appendChild(p);
+
+        setTimeout(() => p.remove(), duration * 1000);
+      }
+    }
+  }, 1000);
+}
+  
+  let chats = JSON.parse(localStorage.getItem("chats")) || {
+  current: "default",
+  data: {
+    default: {
+      messages: [],
+      repeatCounter: {},
+      lastMsg: ""
+    }
+  }
+};
+  
+
+let memory = JSON.parse(localStorage.getItem("scamMemory")) || {};  
+let repeatCounter = {};  
+let lastMsg = "";  
+  
+  let terminatorActive = false;
+  
+  let upsideDownMode = false;
+  
+
+function goTo(n) {  
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));  
+  document.getElementById("screen" + n).classList.add("active");  
+}  
+  
+
+function toggleTheme() {  
+  document.body.classList.toggle("dark");  
+}  
+  
+
+function addMessage(who, text) {  
+  const chat = document.getElementById("chat");  
+  const div = document.createElement("div");  
+  div.className = "bubble " + who;  
+  
+  const sender = who === "me" ? "Вы" : "Скам GPT";  
+  const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});  
+  
+  div.innerHTML =  
+    `<div class="sender">${sender}</div>` +  
+    text +  
+    `<span class="time">${time}</span>`;  
+  
+  chat.appendChild(div);  
+  chat.scrollTop = chat.scrollHeight;  
+}  
+  
+function send() {  
+  const input = document.getElementById("text");  
+  const msg = input.value.trim(); 
+if (terminatorActive) return;  
+  if (!msg) return;  
+  
+  
+  addMessage("me", msg);  
+  
+  const low = msg.toLowerCase();  
+  
+  
+if (low.startsWith("/")) {
+
+  const args = msg.split(" ");
+  const command = args[0].toLowerCase();
+
+  let reply = null;
+
+  switch (command) {
+    
+case "/tp":
+  if (args.length >= 4) {
+    const x = args[1];
+    const y = args[2];
+    const z = args[3];
+
+    if (x == -321 && y == 52 && z == 25) {
+      reply = "Телепортация...\nВы попали в лес Эндермужиков.\n\n";
+    } else {
+      reply = `Телепортация на координаты ${x}, ${y}, ${z}...\nно... тут ничего нет`;
+    }
+
+  } else {
+    reply = "Используй: /tp x y z";
+  }
+  break;    
+
+    case "/help":
+      reply = "Команды: /help, /clear, /theme, /set [что-то]";
+      break;
+
+    case "/clear":
+      clearChat();
+      return;
+    
+    case "/stranger":
+  if (args[1] === "things") {
+
+    upsideDownMode = true;
+    document.body.classList.add("upside");
+
+    reply = "Ты чувствуешь это...\nМир стал другим.";
+
+    setTimeout(() => {
+      addMessage("bot", "Ты в Изнанке...");
+    }, 2000);
+
+    setTimeout(() => {
+      addMessage("bot", "Они уже рядом.");
+    }, 5000);
+
+    startParticles();
+
+  } else {
+    reply = "Ты имел в виду /stranger things ?";
+  }
+  break;
+
+    case "/theme":
+      toggleTheme();
+      reply = "Тема переключена ";
+      break;
+
+    case "/set":
+      if (args[1] === "air") {
+        reply = "Да ты чё... бляяяяяяяяяяяяя";
+      } else {
+        reply = "Неизвестный параметр ";
+      }
+      break;
+
+    case "/secret":
+      reply = "Ты нашёл секретную команду ";
+      break;
+
+    default:
+      reply = "Неизвестная команда ";
+  }
+
+  addMessage("bot", reply);
+  input.value = "";
+  return;
+}
+  
+
+if (/[0-9+\-*/()]/.test(msg)) {
+  try {
+    let expression = msg.replace(/[=?]/g, "").trim();
+    let result = eval(expression);
+
+    let replyOptions = [
+      result.toString(),
+      `${expression} = ${result}`
+    ];
+
+    let mathReply = replyOptions[Math.floor(Math.random() * replyOptions.length)];
+
+    addMessage("bot", "Скам GPT печатает...");
+    const typing = document.querySelector("#chat .bubble.bot:last-child");
+
+    setTimeout(() => {
+      typing.remove();
+      addMessage("bot", mathReply);
+    }, 600);
+
+  } catch {
+    addMessage("bot", "Ошибка в вычислении...");
+  }
+
+  input.value = "";
+  return;
+}
+  
+
+const specialQuestions = ["кто ты такой", "что ты такой"];
+for (let sq of specialQuestions) {
+  if (low.includes(sq)) {
+  
+    addMessage("bot", "Ты не должен был этого спрашивать...");
+
+  
+    const lastBotMsg = document.querySelector("#chat .bubble.bot:last-child");
+
+    
+    setTimeout(() => {
+      lastBotMsg.remove(); 
+      addMessage("bot", "Я Скам GPT — что-то типа искусственного интеллекта. Я могу болтать, запоминать команды, иногда шучу и иногда игнорирую. Всё ради веселья и обучения!");
+    }, 2000);
+
+    input.value = ""; 
+    return; 
+  }
+}
+  
+ 
+if (!terminatorActive && (low.includes("terminator") || low.includes("терминатор"))) {
+  terminatorActive = true;
+
+  
+  document.getElementById("text").disabled = true;
+     document.querySelectorAll("#screen2 button, #screen2 li").forEach(el => el.disabled = true);
+
+  
+  addMessage("bot", "Система временно приостановлена...");
+
+  setTimeout(() => {
+    addMessage("bot", "Сканирование системы...");
+  }, 20000); 
+
+  setTimeout(() => {
+    addMessage("bot", "Система восстановлена.");
+
+    
+    document.getElementById("text").disabled = false;
+    terminatorActive = false;
+    document.querySelectorAll("#screen2 button, #screen2 li").forEach(el => el.disabled = false);
+
+  }, 60000); 
+  
+  input.value = "";
+  
+  return;
+}
+  
+  
+  const msgKey = low;  
+  if (msgKey !== lastMsg) repeatCounter[msgKey] = 0;  
+  repeatCounter[msgKey]++;  
+  lastMsg = msgKey;  
+  
+  let reply = null;  
+  
+   
+  if (repeatCounter[msgKey] === 1) {  
+    
+    if (low.includes("привет")) {  
+      const replies = ["Привет!", "Чау-чау!", "Хай!", "Привет-привет!"];  
+      reply = replies[Math.floor(Math.random() * replies.length)];  
+    } else if (low.includes("как дела?")) {  
+      const replies = ["Хорошо, спасибо, а у тебя как?", "Нормально...", "Бывало и лучше...", "Если честно, ужасно..."];  
+      reply = replies[Math.floor(Math.random() * replies.length)];  
+    }   
+    else if (low.includes("пока")) reply = "Пока!";  
+    else if (low.includes("67")) reply = "Заткнись!";  
+    else if (low.includes("сделай картинку")) reply = "Я пока не могу генерировать изображения для вас. Эта функция никогда не появится.";  
+    else if (low.includes("...")) reply = "...";   
+    else if (low.includes("это да?")) reply = "Это нет...";  
+    else if (low.includes("хорошо")) reply = "Это хорошо :)";  
+     else if (low.includes("что ты умеешь?")) {  
+      const replies = ["Ничего особеного...", "Ни х...рена", "Я... ничего...", "Да хрен его знает! Думай сам!"];  
+      reply = replies[Math.floor(Math.random() * replies.length)];  
+    }   
+    else if (low.includes("в смысле?")) reply = "В карамысле!";  
+    else if (low.includes("да...")) reply = "Пи#да";  
+    else if (low.includes("нет")) reply = "Пи#ора ответ :)";  
+    else if (low.includes("я знаю")) reply = "Ну и что же?";  
+    else if (low.includes("что то интересное")) reply = "Интерестно... раскажешь?";  
+    else if (low.includes("ты знал что я тебя создал?")) reply = "Нет, теперь знаю.";  
+    else if (low.includes("красава")) reply = "Спасибо";  
+    else if (low.includes("/set air")) reply = "Да ты чё... бляяяяяяяяяяяяя";  
+    else if (low.includes("worldedit")) reply = "Не надо дядя...";  
+    else if (low.includes("hardmachine")) reply = "HardMaschine - это имя счасливого гаста из Minecraft, но к сожалению, он покинул нас, он задохнулся в блоках, для моего создателя эта была очень большая потеря.";  
+  } else if (repeatCounter[msgKey] === 2) {  
+    reply = "Ты это уже говорил...";  
+  } else if (repeatCounter[msgKey] === 3) {  
+    reply = "Ещё раз повторишь — буду игнорить!";  
+  } 
+else if (repeatCounter[msgKey] >= 4) {
+  reply = "IGNORE";
+}  
+  
+ 
+  if (low.startsWith("учись:")) {  
+    const parts = msg.slice(6).split("=");  
+    if (parts.length === 2) {  
+      const key = parts[0].trim().toLowerCase();  
+      const value = parts[1].trim();  
+      memory[key] = value;  
+      localStorage.setItem("scamMemory", JSON.stringify(memory));  
+      reply = "Запомнил.";  
+    }  
+  } else {  
+    for (let key in memory) {  
+      if (low.includes(key)) {  
+        reply = memory[key];  
+        break;  
+      }  
+    }  
+  }  
+  
+   
+  addMessage("bot", "Скам GPT печатает...");  
+  const typing = document.querySelector("#chat .bubble.bot:last-child");  
+  
+setTimeout(() => {
+  typing.remove();
+
+  if (reply === "IGNORE") return; 
+
+  if (reply === null) {
+    reply = "К сожалению, сейчас я не могу ответить на этот запрос. Могу ли я помочь вам с чем-то другим?";
+  }
+
+  addMessage("bot", reply);
+}, 600);
+  
+  input.value = "";  
+}  
+  
+document.getElementById("text").addEventListener("keydown", function(e) {  
+  if (e.key === "Enter") {  
+    e.preventDefault();  
+    send();  
+  }  
+});  
+  
+ 
+const texts = {  
+  ru: { title:"Скам GPT", placeholder:"Напиши сообщение", send:"Отправить", settings:"Настройки", back:"Назад", theme:"Сменить тему",  
+        info:"Информация", rules:"Правила", privacy:"Политика конфиденциальности", languageSelect:"Выбор языка",  
+        screen3_text:["Скам GPT — школьный проект.","Сделан ради прикола и обучения."],  
+        screen4_text:["1. Не воспринимать ответы всерьёз.","2. Это не настоящий ИИ.","3. Всё сделано ради шутки."],  
+        screen5_text:["Приложение не собирает данные.","Ничего не отправляется в интернет."]},  
+  lv: { title:"Scam GPT", placeholder:"Raksti ziņu", send:"Sūtīt", settings:"Iestatījumi", back:"Atpakaļ", theme:"Mainīt tēmu",  
+        info:"Informācija", rules:"Noteikumi", privacy:"Privātuma politika", languageSelect:"Valodas izvēle",  
+        screen3_text:["Scam GPT — skolas projekts.","Veidots jokam un mācībām."],  
+        screen4_text:["1. Neuztver atbildes nopietni.","2. Tas nav īsts AI.","3. Viss ir joks."],  
+        screen5_text:["Lietotne nesavāc datus.","Nekas netiek nosūtīts internetā."]},  
+  en: { title:"Scam GPT", placeholder:"Type a message", send:"Send", settings:"Settings", back:"Back", theme:"Toggle Theme",  
+        info:"Info", rules:"Rules", privacy:"Privacy Policy", languageSelect:"Choose language",  
+        screen3_text:["Scam GPT — a school project.","Made for fun and learning."],  
+        screen4_text:["1. Do not take answers seriously.","2. This is not a real AI.","3. Everything is a joke."],  
+        screen5_text:["The app does not collect data.","Nothing is sent to the internet."]}  
+};  
+  
+let currentLang = "ru";  
+  
+function setLanguage(lang) {  
+  if (!texts[lang]) return;  
+  currentLang = lang;  
+  
+  
+  document.querySelector("#screen1 h2").textContent = texts[lang].title;  
+  document.getElementById("text").placeholder = texts[lang].placeholder;  
+  document.querySelector("#screen1 button[onclick='send()']").textContent = texts[lang].send;  
+  document.querySelector("#screen1 button[onclick='goTo(2)']").textContent = texts[lang].settings;  
+  
+  
+  document.querySelector("#screen2 h2").textContent = texts[lang].settings;  
+  document.getElementById("languageLabel").textContent = texts[lang].languageSelect;  
+  document.querySelector("#screen2 button[onclick='toggleTheme()']").textContent = texts[lang].theme;  
+  document.querySelector("#screen2 button[onclick='goTo(1)']").textContent = texts[lang].back;  
+  document.querySelector("#screen2 li:nth-child(1)").textContent = texts[lang].info;  
+  document.querySelector("#screen2 li:nth-child(2)").textContent = texts[lang].rules;  
+  document.querySelector("#screen2 li:nth-child(3)").textContent = texts[lang].privacy;  
+  
+ 
+  document.querySelector("#screen3 h2").textContent = texts[lang].info;  
+  document.querySelectorAll("#screen3 p").forEach((p,i) => {  
+    if(p.classList.contains("link")) p.textContent = texts[lang].back;  
+    else p.textContent = texts[lang].screen3_text[i] || "";  
+  });  
+  
+  
+  document.querySelector("#screen4 h2").textContent = texts[lang].rules;  
+  document.querySelectorAll("#screen4 p").forEach((p,i) => {  
+    if(p.classList.contains("link")) p.textContent = texts[lang].back;  
+    else p.textContent = texts[lang].screen4_text[i] || "";  
+  });
+  
+ 
+  document.querySelector("#screen5 h2").textContent = texts[lang].privacy;  
+  document.querySelectorAll("#screen5 p").forEach((p,i) => {  
+    if(p.classList.contains("link")) p.textContent = texts[lang].back;  
+    else p.textContent = texts[lang].screen5_text[i] || "";  
+  });  
+}  
+  function confirmClearChat() {
+  if (confirm("Это удалит чат полностью! Вы уверены?")) {
+    clearChat();
+  }
+}
+  
+
+function clearChat() {
+  const current = chats.current;
+
+  if (!chats.data[current]) return;
+
+ 
+  chats.data[current].messages = [];
+  chats.data[current].repeatCounter = {};
+  chats.data[current].lastMsg = "";
+
+  
+  localStorage.setItem("chats", JSON.stringify(chats));
+
+ 
+  document.getElementById("chat").innerHTML = "";
+
+}
+</script>
+
+</body>
+</html>
